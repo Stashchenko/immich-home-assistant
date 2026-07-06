@@ -1,4 +1,4 @@
-# Immich × Home Assistant ![GitHub Release](https://img.shields.io/github/v/release/outadoc/immich-home-assistant) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/outadoc/immich-home-assistant/validate.yml)
+# Immich × Home Assistant ![GitHub Release](https://img.shields.io/github/v/release/stashchenko/immich-home-assistant) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/outadoc/immich-home-assistant/validate.yml)
 
 This custom integration for Home Assistant allows you to display random pictures from your Immich instance right inside your dashboards.
 
@@ -16,7 +16,7 @@ Home Assistant provides "open source home automation that puts local control and
 
 Install this component _via_ [HACS](https://hacs.xyz).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=immich-home-assistant&category=Integration&owner=outadoc)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=immich-home-assistant&category=Integration&owner=stashchenko)
 
 Restart Home Assistant once the integration has been installed.
 

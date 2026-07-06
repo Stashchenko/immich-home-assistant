@@ -11,7 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 _HEADER_API_KEY = "x-api-key"
 _LOGGER = logging.getLogger(__name__)
 
-_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg"]
+_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"]
 
 
 class ImmichHub:
@@ -115,10 +115,14 @@ class ImmichHub:
         try:
             async with aiohttp.ClientSession() as session:
                 url = urljoin(self.host, "/api/search/metadata")
-                headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
-                data = {"isFavorite": "true"}
+                headers = {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    _HEADER_API_KEY: self.api_key,
+                }
+                data = {"isFavorite": True}
 
-                async with session.post(url=url, headers=headers, data=data) as response:
+                async with session.post(url=url, headers=headers, json=data) as response:
                     if response.status != 200:
                         raw_result = await response.text()
                         _LOGGER.error("Error from API: body=%s", raw_result)
@@ -128,7 +132,10 @@ class ImmichHub:
                     assets: list[dict] = favorites["assets"]["items"]
 
                     filtered_assets: list[dict] = [
-                        asset for asset in assets if asset["type"] == "IMAGE"
+                        asset
+                        for asset in assets
+                        if asset.get("type") == "IMAGE"
+                           and asset.get("originalMimeType") in _ALLOWED_MIME_TYPES
                     ]
 
                     return filtered_assets
@@ -160,7 +167,48 @@ class ImmichHub:
         """List all images in an album."""
         try:
             async with aiohttp.ClientSession() as session:
-                url = urljoin(self.host, f"/api/albums/{album_id}")
+                url = urljoin(self.host, "/api/search/metadata")
+                headers = {
+                    "Accept": "application/json",
+                    _HEADER_API_KEY: self.api_key,
+                    "Content-Type": "application/json",
+                }
+                data = {"albumIds": [album_id]}
+
+                async with session.post(url=url, headers=headers, json=data) as response:
+                    if response.status != 200:
+                        raw_result = await response.text()
+                        _LOGGER.error("Error from API: body=%s", raw_result)
+                        raise ApiError()
+
+                    result = await response.json()
+                    assets: list[dict] = result["assets"]["items"]
+
+                    filtered_assets: list[dict] = [
+                        asset
+                        for asset in assets
+                        if asset.get("type") == "IMAGE"
+                           and asset.get("originalMimeType") in _ALLOWED_MIME_TYPES
+                    ]
+
+                    return filtered_assets
+        except aiohttp.ClientError as exception:
+            _LOGGER.error("Error connecting to the API: %s", exception)
+            raise CannotConnect from exception
+
+    async def list_memory_lane_images(self) -> list[dict]:
+        """Fetch today's memory lane images.
+
+        Uses the /api/memories endpoint to retrieve "On This Day" memories.
+        """
+        from datetime import datetime, timezone
+
+        # Format date as a full ISO 8601 string expected by the Immich API
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00.000Z")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = urljoin(self.host, f"/api/memories?for={date_str}")
                 headers = {"Accept": "application/json", _HEADER_API_KEY: self.api_key}
 
                 async with session.get(url=url, headers=headers) as response:
@@ -169,14 +217,18 @@ class ImmichHub:
                         _LOGGER.error("Error from API: body=%s", raw_result)
                         raise ApiError()
 
-                    album_info: dict = await response.json()
-                    assets: list[dict] = album_info["assets"]
+                    memories: list[dict] = await response.json()
+                    assets = []
 
-                    filtered_assets: list[dict] = [
-                        asset for asset in assets if asset["type"] == "IMAGE"
-                    ]
+                    # Extract image assets from all memories
+                    for memory in memories:
+                        if "assets" in memory:
+                            for asset in memory["assets"]:
+                                # Filter to only include images (not videos)
+                                if asset.get("type") == "IMAGE":
+                                    assets.append(asset)
 
-                    return filtered_assets
+                    return assets
         except aiohttp.ClientError as exception:
             _LOGGER.error("Error connecting to the API: %s", exception)
             raise CannotConnect from exception

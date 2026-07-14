@@ -1,4 +1,4 @@
-# Immich × Home Assistant ![GitHub Release](https://img.shields.io/github/v/release/stashchenko/immich-home-assistant) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/outadoc/immich-home-assistant/validate.yml)
+# Immich × Home Assistant ![GitHub Release](https://img.shields.io/github/v/release/stashchenko/immich-home-assistant) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/stashchenko/immich-home-assistant/validate.yml)
 
 This custom integration for Home Assistant allows you to display random pictures from your Immich instance right inside your dashboards.
 

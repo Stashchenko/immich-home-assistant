@@ -203,8 +203,8 @@ class ImmichHub:
         """
         from datetime import datetime, timezone
 
-        # Format date as a full ISO 8601 string expected by the Immich API
-        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00.000Z")
+        # Format date as a clean YYYY-MM-DD string expected by the Immich v3 API
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         try:
             async with aiohttp.ClientSession() as session:

@@ -224,8 +224,8 @@ class ImmichHub:
                     for memory in memories:
                         if "assets" in memory:
                             for asset in memory["assets"]:
-                                # Filter to only include images (not videos)
-                                if asset.get("type") == "IMAGE":
+                                # Filter to only include images and allowed mime types
+                                if asset.get("type") == "IMAGE" and asset.get("originalMimeType") in _ALLOWED_MIME_TYPES:
                                     assets.append(asset)
 
                     return assets

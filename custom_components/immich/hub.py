@@ -11,7 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 _HEADER_API_KEY = "x-api-key"
 _LOGGER = logging.getLogger(__name__)
 
-_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"]
+_ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp", "image/heic", "image/heif"]
 
 
 class ImmichHub:
@@ -91,7 +91,7 @@ class ImmichHub:
         """Download the asset."""
         try:
             async with aiohttp.ClientSession() as session:
-                url = urljoin(self.host, f"/api/assets/{asset_id}/original")
+                url = urljoin(self.host, f"/api/assets/{asset_id}/thumbnail?size=preview")
                 headers = {_HEADER_API_KEY: self.api_key}
 
                 async with session.get(url=url, headers=headers) as response:
@@ -225,7 +225,8 @@ class ImmichHub:
                         if "assets" in memory:
                             for asset in memory["assets"]:
                                 # Filter to only include images and allowed mime types
-                                if asset.get("type") == "IMAGE" and asset.get("originalMimeType") in _ALLOWED_MIME_TYPES:
+                                if asset.get("type") == "IMAGE" and asset.get(
+                                        "originalMimeType") in _ALLOWED_MIME_TYPES:
                                     assets.append(asset)
 
                     return assets

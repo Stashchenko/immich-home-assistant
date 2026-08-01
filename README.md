@@ -50,9 +50,53 @@ You could even display in onto a Nest Hub device with the [Home Assistant Cast](
     dashboard_path: lovelace
     view_path: photo-frame
 ```
-
 ![A Nest Hub 2 showing a cat picture, straight from Home Assistant](assets/demo.jpg)
 
+
+Show memory card for the specific date on the dashboard:  
+
+```yaml
+type: picture-entity
+entity: image.immich_memory_lane
+show_state: false
+show_name: false
+camera_view: live
+fit_mode: cover
+grid_options:
+  rows: 3
+visibility:
+  - condition: or
+    conditions:
+      - condition: state
+        state_not: unknown
+      - condition: state
+        state_not: unavailable
+card_mod:
+  style: |
+    ha-card::after {
+      content: "{{[ [(state_attr('image.immich_memory_lane', 'media_exif') or {}).get('city'), (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('country')] | select | join(', '), as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')).strftime('%d %B, %Y') if as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')) else '' ] | select | join(' - ')}}";
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      right: 0;
+      color: white;
+      text-align: center;      
+      font-size: 15px;
+      font-weight: bold;      
+      text-shadow: 0 2px 6px rgba(0,0,0,.9);
+      display: block;
+      padding: 20px 0 5px 0;  /* top right bottom left */
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.95) 0%,
+        rgba(0,0,0,0.75) 40%,
+        rgba(0,0,0,0.35) 70%,
+        transparent 100%
+      );
+    }
+
+```
+![picture-entity](assets/img.png)
 ## How does it work?
 
 The integration can provide multiple `image` entities, which each correspond to an album. Each entity will switch to a new random image every 5 minutes.

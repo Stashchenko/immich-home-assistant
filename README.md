@@ -55,6 +55,26 @@ You could even display in onto a Nest Hub device with the [Home Assistant Cast](
 
 Show memory card for the specific date on the dashboard:  
 
+Add new template sensor:
+
+```yaml
+- sensor:
+    - name: "Immich Memory Lane Details"
+      unique_id: immich_memory_lane_details
+      icon: mdi:image-text
+      state: >
+        {% set details = [ 
+          [
+            (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('city'), 
+            (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('country')
+          ] | select | join(', '), 
+          as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')).strftime('%d %B, %Y') 
+          if as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')) else '' 
+        ] | select | join(' - ') %}
+        {{ details if details else '' }}
+```
+
+And new card to dashboard:  
 ```yaml
 type: picture-entity
 entity: image.immich_memory_lane
@@ -65,16 +85,15 @@ fit_mode: cover
 grid_options:
   rows: 3
 visibility:
-  - condition: or
-    conditions:
-      - condition: state
-        state_not: unknown
-      - condition: state
-        state_not: unavailable
+  - condition: state
+    state_not: unknown
+  - condition: state
+    state_not: unavailable
 card_mod:
   style: |
     ha-card::after {
-      content: "{{[ [(state_attr('image.immich_memory_lane', 'media_exif') or {}).get('city'), (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('country')] | select | join(', '), as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')).strftime('%d %B, %Y') if as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')) else '' ] | select | join(' - ')}}";
+      content: "{{ states('sensor.immich_memory_lane_details') }}";
+      display: {{ 'none' if states('sensor.immich_memory_lane_details') in ['', 'unknown', 'unavailable'] else 'block' }};
       position: absolute;
       bottom: 0px;
       left: 0;
@@ -83,8 +102,7 @@ card_mod:
       text-align: center;      
       font-size: 15px;
       font-weight: bold;      
-      text-shadow: 0 2px 6px rgba(0,0,0,.9);
-      display: block;
+      text-shadow: 0 2px 6px rgba(0,0,0,.9);      
       padding: 20px 0 5px 0;  /* top right bottom left */
       background: linear-gradient(
         to top,

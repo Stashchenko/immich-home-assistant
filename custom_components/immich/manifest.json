@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/Stashchenko/immich-home-assistant/issues",
   "requirements": ["url-normalize>=3.0.1"],
   "ssdp": [],
-  "version": "0.3.4",
+  "version": "0.4.0",
   "zeroconf": []
 }

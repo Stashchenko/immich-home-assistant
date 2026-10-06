@@ -70,6 +70,7 @@ class BaseImmichImage(ImageEntity):
     _attr_has_entity_name = True
     _attr_should_poll = True
 
+    _attr_available = True
     _current_image_bytes: bytes | None = None
     _cached_available_asset_ids: list[str] | None = None
     _available_asset_ids_last_updated: datetime | None = None
@@ -88,10 +89,19 @@ class BaseImmichImage(ImageEntity):
 
     async def async_image(self) -> bytes | None:
         """Return the current image. If no image is available, load and cache it."""
-        if not self._current_image_bytes:
+        if self._current_image_bytes is None:
             await self._load_and_cache_next_image()
 
         return self._current_image_bytes
+
+    def _set_unavailable(self) -> None:
+        """Set the entity as unavailable and clear cached image."""
+        if self._attr_available or self._current_image_bytes is not None:
+            self._current_image_bytes = None
+            self._attr_available = False
+            self._attr_extra_state_attributes = {}
+            self._attr_image_last_updated = None
+            self.async_write_ha_state()
 
     async def _refresh_available_asset_ids(self) -> list[str] | None:
         """Refresh the list of available asset IDs."""
@@ -138,6 +148,7 @@ class BaseImmichImage(ImageEntity):
             asset_id = await self._get_next_asset_id()
 
             if not asset_id:
+                self._set_unavailable()
                 return
 
             try:
@@ -166,6 +177,7 @@ class BaseImmichImage(ImageEntity):
 
                 self._current_image_bytes = asset_bytes
                 self._attr_image_last_updated = datetime.now(timezone.utc)
+                self._attr_available = True
                 self.async_write_ha_state()
 
             except Exception as exception:

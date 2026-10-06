@@ -53,26 +53,7 @@ You could even display in onto a Nest Hub device with the [Home Assistant Cast](
 ![A Nest Hub 2 showing a cat picture, straight from Home Assistant](assets/demo.jpg)
 
 
-Show memory card for the specific date on the dashboard:  
-
-Add new template sensor:
-
-```yaml
-- sensor:
-    - name: "Immich Memory Lane Details"
-      unique_id: immich_memory_lane_details
-      icon: mdi:image-text
-      state: >
-        {% set details = [ 
-          [
-            (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('city'), 
-            (state_attr('image.immich_memory_lane', 'media_exif') or {}).get('country')
-          ] | select | join(', '), 
-          as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')).strftime('%d %B, %Y') 
-          if as_datetime(state_attr('image.immich_memory_lane', 'media_localdatetime')) else '' 
-        ] | select | join(' - ') %}
-        {{ details if details else '' }}
-```
+Show memory card for the specific date on the dashboard:
 
 And new card to dashboard:  
 ```yaml

@@ -21,7 +21,11 @@
     "step": {
       "init": {
         "data": {
-          "watched_albums": "Albums for which entities will be created"
+          "watched_albums": "Albums for which entities will be created",
+          "date_format": "Date format"
+        },
+        "data_description": {
+          "date_format": "Choose how dates are displayed in Immich detail sensors."
         }
       }
     }

@@ -5,16 +5,16 @@ import logging
 from typing import Any
 from urllib.parse import urlparse
 
-from url_normalize import url_normalize
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_HOST
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
+from url_normalize import url_normalize
 
-from .const import CONF_WATCHED_ALBUMS, DOMAIN
+from .const import (CONF_DATE_FORMAT, CONF_WATCHED_ALBUMS, DEFAULT_DATE_FORMAT, DOMAIN, DATE_FORMAT_OPTIONS)
 from .hub import CannotConnect, ImmichHub, InvalidAuth
 
 _LOGGER = logging.getLogger(__name__)
@@ -123,7 +123,19 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required(
                         CONF_WATCHED_ALBUMS,
                         default=current_albums_value,
-                    ): cv.multi_select(album_map)
+                    ): cv.multi_select(album_map),
+                    vol.Required(
+                        CONF_DATE_FORMAT,
+                        default=self.config_entry.options.get(
+                            CONF_DATE_FORMAT,
+                            DEFAULT_DATE_FORMAT,
+                        ),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=DATE_FORMAT_OPTIONS,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
                 }
             ),
         )

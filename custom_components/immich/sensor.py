@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import CONF_DATE_FORMAT, DEFAULT_DATE_FORMAT, DOMAIN
 from .image import BaseImmichImage
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,8 +26,15 @@ async def async_setup_entry(
     """Set up the Immich detail sensors."""
     data = hass.data[DOMAIN][config_entry.entry_id]
     images: list[BaseImmichImage] = data["images"]
+    date_format = config_entry.options.get(
+        CONF_DATE_FORMAT,
+        DEFAULT_DATE_FORMAT,
+    )
 
-    async_add_entities(ImmichImageDetailsSensor(image) for image in images)
+    async_add_entities(
+        ImmichImageDetailsSensor(image, date_format)
+        for image in images
+    )
 
 
 class ImmichImageDetailsSensor(SensorEntity):
@@ -37,9 +44,10 @@ class ImmichImageDetailsSensor(SensorEntity):
     _attr_should_poll = True
     _attr_icon = "mdi:image-text"
 
-    def __init__(self, image: BaseImmichImage) -> None:
+    def __init__(self, image: BaseImmichImage, date_format: str = DEFAULT_DATE_FORMAT) -> None:
         """Initialize the details sensor for a given image entity."""
         self._image = image
+        self._date_format = date_format
         self._attr_unique_id = f"{image.unique_id}_details"
         self._attr_name = f"{image.name} Details"
         self._attr_device_info = image.device_info
@@ -72,7 +80,7 @@ class ImmichImageDetailsSensor(SensorEntity):
         if raw_dt:
             parsed = dt_util.parse_datetime(raw_dt)
             if parsed is not None:
-                date_str = parsed.strftime("%d-%B-%Y")
+                date_str = parsed.strftime(self._date_format)
 
         summary = ", ".join(part for part in (location, date_str) if part)
         return summary or None
